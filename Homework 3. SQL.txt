@@ -1,0 +1,114 @@
+
+1. 
+SELECT 
+    employees.employee_id,
+    employees.salary,
+    employees.hire_date,
+    job_history.end_date 
+FROM 
+    employees 
+JOIN 
+    job_history ON employees.employee_id = job_history.employee_id
+WHERE 
+    job_history.end_date IS NOT NULL
+UNION 
+SELECT 
+    employees.employee_id,
+    employees.salary,
+    employees.hire_date,
+    NULL AS termination_date
+FROM 
+    employees 
+WHERE 
+    employees.employee_id NOT IN (SELECT employee_id FROM job_history);
+
+2. 
+SELECT 'fired_employees' AS status,
+COUNT(employees.employee_id) AS employee_count
+FROM 
+    employees 
+JOIN 
+    job_history ON employees.employee_id = job_history.employee_id
+WHERE 
+    job_history.end_date IS NOT NULL
+UNION
+SELECT 
+    'current_employees' AS status,
+COUNT(employees.employee_id) AS employee_count
+FROM 
+    employees
+WHERE 
+    employees.employee_id NOT IN (SELECT employee_id FROM job_history);
+
+
+3. SELECT 
+    job_history.job_id,
+    'fired_employees' AS status,
+    COUNT(employees.employee_id) AS employee_count
+FROM 
+    employees
+JOIN 
+    job_history ON employees.employee_id = job_history.employee_id
+WHERE 
+    job_history.end_date IS NOT NULL
+GROUP BY 
+    job_history.job_id
+UNION
+SELECT 
+    employees.job_id,
+   'current_employees' AS status,
+    COUNT(employees.employee_id) AS employee_count
+FROM 
+    employees 
+WHERE 
+    employees.employee_id NOT IN (SELECT employee_id FROM job_history)
+GROUP BY 
+    employees.job_id;
+
+4. SELECT department_id, COUNT(employee_id) AS employee_count
+FROM employees 
+WHERE department_id IN 
+    (SELECT department_id
+    FROM job_history 
+    GROUP BY department_id
+    HAVING COUNT(employee_id) > 1)
+GROUP BY department_id
+ORDER BY employee_count DESC;
+
+
+5. SELECT employees.employee_id, employees.first_name, employees.last_name
+FROM employees
+WHERE employees.department_id IN 
+    (SELECT department_id
+    FROM job_history
+    WHERE MONTHS_BETWEEN(end_date, start_date) < 12);
+
+6. SELECT employees.employee_id, employees.first_name, employees.last_name
+FROM employees 
+WHERE EXISTS 
+    (SELECT employees.department_id 
+    FROM job_history 
+    WHERE job_history.department_id = employees.department_id
+    AND MONTHS_BETWEEN(job_history.end_date, job_history.start_date) > 12);
+
+7. SELECT department_id, COUNT(employee_id) AS employee_count 
+FROM employees 
+WHERE department_id IN 
+    (SELECT department_id
+    FROM job_history
+    WHERE MONTHS_BETWEEN(end_date, start_date) > 12)
+GROUP BY department_id
+ORDER BY employee_count DESC;
+
+8. INSERT INTO employees (EMPLOYEE_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, HIRE_DATE, JOB_ID, SALARY, COMMISSION_PCT, MANAGER_ID, DEPARTMENT_ID)
+VALUES (1507, 'Alina', 'Bezruchko', 'ABCDEF', '111.111.1111', '22-Jun-25', 'AD_VP', 25000, null, 205, 110);
+
+
+9. UPDATE employees SET DEPARTMENT_ID = 90, SALARY = 30000
+WHERE EMPLOYEE_ID = 1507;
+
+10. 
+DELETE 
+FROM employees
+WHERE EMPLOYEE_ID =1507;
+
